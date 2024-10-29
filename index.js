@@ -12,47 +12,54 @@ const fetchData = async (searchTerm) => {
         }
     });
     
-    console.log(response.data);
+    //if no movie matches the search
+    if (response.data.Error) {
+        return [];
+    };
+    
+    //capital s in Search because that is how the API was written
+    return response.data.Search;
 };
+
+const root = document.querySelector('.autocomplete');
+root.innerHTML = `
+    <label><b>Search For A Movie</b></label>
+    <input class="input"/>
+    <div class="dropdown">
+        <div class="dropdown-menu">
+            <div class="dropdown-content results">
+            </div>
+        </div>
+    </div>
+`;
 
 const input = document.querySelector('input');
+const dropdown = document.querySelector('.dropdown');
+const resultsWrapper = document.querySelector('.results');
 
-/* 
-Debouncing an input: waiting for some time to pass after the last event to actually do something
-*/
 
-const debounce = (callback) => {
-    let timeoutID;
-    return (...args) => {
-        //the first time a user presses a key, this code is skipped
-        if (timeoutID) {
-            //the second time a user presses a key, timeoutID is already defined and we are 
-            //stopping the timer
-            clearTimeout(timeoutID);
-        };
+const onInput = async event => {
+    //fetchData is async so we have to treat it as an async function
+    const movies = await fetchData(event.target.value);
 
-        //the first time a user presses a key, timeoutID  is set
-//     //the second time a user presses a key, a new timeoutID is created and the process repeats
-        timeoutID = setTimeout(() => {
-            //apply calls the function as normal AND passes each element of args in as separate arguments to callback()
-            callback.apply(null, args);
-        }, 1000)
+    //clears previous results
+    resultsWrapper.innerHTML = '';
+
+    //makes the dropdown visible
+    dropdown.classList.add('is-active');
+    for (let movie of movies) {
+        const option = document.createElement('a');
+
+        const imgSrc = movie.Poster === 'N/A' ? '' : item.Poster;
+
+        option.classList.add('dropdown-item');
+        option.innerHTML = `
+            <img src="${movie.Poster}" />
+            ${movie.Title}
+        `;
+
+        resultsWrapper.appendChild(option);
     };
 };
 
-const onInput = event => {
-    //the first time a user presses a key, this code is skipped
-    //the second time a user presses a key, timeoutID is already defined and we are stopping the timer
-    if (timeoutID) {
-        clearTimeout(timeoutID);
-    };
-
-    //the first time a user presses a key, timeoutID  is set
-    //the second time a user presses a key, a new timeoutID is created and the process repeats
-    //until there is a full second in between the user typing
-    timeoutID = setTimeout(() => {
-        fetchData(event.target.value);
-    }, 1000)
-};
-
-input.addEventListener('input', onInput);
+input.addEventListener('input', debounce(onInput), 1000);
