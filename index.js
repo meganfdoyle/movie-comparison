@@ -1,36 +1,38 @@
-const fetchData = async (searchTerm) => {
-    //respresents all information related to this request
-    const response = await axios.get('http://www.omdbapi.com/', {
-        //axios formats the URL with the specified params
-        //Network > Fetch/XHR > Request URL
-        params: {
-            apikey: 'c60d4cfb',
-            //i specifies the individual movie and shows a lot more info about it
-            //i: 
-            //s is used to search for a movie title
-            s: searchTerm
-        }
-    });
-    
-    //if no movie matches the search
-    if (response.data.Error) {
-        return [];
-    };
-    
-    //capital s in Search because that is how the API was written
-    return response.data.Search;
-};
-
 createAutoComplete({
-    root: document.querySelector('.autocomplete')
-});
-
-createAutoComplete({
-    root: document.querySelector('.autocomplete-two')
-});
-
-createAutoComplete({
-    root: document.querySelector('.autocomplete-three')
+    root: document.querySelector('.autocomplete'),
+    renderOption(movie) {
+        const imgSrc = movie.Poster === 'N/A' ? '' : movie.Poster;
+        return `
+            <img src="${imgSrc}" />
+            ${movie.Title} (${movie.Year})
+        `
+    },
+    onOptionSelect(movie) {
+        onMovieSelect(movie);
+    },
+    inputValue(movie) {
+        return moveBy.Title
+    },
+    async fetchData(searchTerm) {
+        //respresents all information related to this request
+        const response = await axios.get('http://www.omdbapi.com/', {
+            //axios formats the URL with the specified params
+            //Network > Fetch/XHR > Request URL
+            params: {
+                apikey: 'c60d4cfb',
+                //i specifies the individual movie and shows a lot more info about it
+                //i: 
+                //s is used to search for a movie title
+                s: searchTerm
+            }
+        });
+        //if no movie matches the search
+        if (response.data.Error) {
+            return [];
+        };
+        //capital s in Search because that is how the API was written
+        return response.data.Search;
+    }
 });
 
 onMovieSelect = async movie => {
